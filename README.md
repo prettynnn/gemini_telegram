@@ -1,1 +1,1 @@
-# gemini_telegram
+a small Gemini bot, integration in Telegram
