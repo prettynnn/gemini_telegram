@@ -13,8 +13,8 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 # register the important data
 log = logging.info
-api_key = 'your tg token'
-gemini_api_key = 'your token api gemini'
+api_key = 'token'
+gemini_api_key = 'api token'
 client = genai.Client(api_key=gemini_api_key)
 
 log(f'Database is connected!')
@@ -70,18 +70,19 @@ async def create_handler(message: types.Message):
         try:
             if search is None:
                 await dat.cursor.execute('INSERT OR IGNORE INTO DATA (user, requests, response) VALUES (?, ?, ?)', (user_id, 'requests', 'response'))
-                await message.reply("succesfully chat created!")
+                await message.reply("Succesfully chat created!")
             
                 await dat.save_message(user_id, 'requests', 'response')
                 return
         
             else:
-                await message.reply("you have chat, cannot create new!")
+                await message.reply("You have chat, cannot create new!")
                 
             await dat.connect.close()
         except aiosqlite.Error as e:
             log(f'error  - {e}')
         
+
 # here we speaking to bot, and he responds to any of our commands
 @dp.message()
 async def gemini_handler(message: types.Message):
@@ -92,23 +93,32 @@ async def gemini_handler(message: types.Message):
             search = await dat.require_message_data(user_id)
         
             if search is None:
-                await message.reply('you mustn create chat: /create_chat')
+                await message.reply('You must create chat: /create_chat')
                 return
             
             user_message = message.text
             requests = chat.send_message(user_message)
             response = requests.text
+            response = response.replace('**', '')
             
             await dat.save_message(user_id, 'requests', 'response')
             
-            await message.reply(response)
-        
+            if len(response) > 4096:
+                for x in range(0, len(response), 4096):
+                    await message.answer(
+                    response[x:x+4096],
+                    ),
+            
+            else:
+                await message.reply(response)
+                
             await dat.connect.close()
         except aiosqlite.Error as e:
             log(f'error - {e}')
 
 # bot listening to all requests
 async def main():
+    await dat.create_table()
     await dp.start_polling(bot)
     
 dat = Data()
