@@ -78,7 +78,6 @@ async def create_handler(message: types.Message):
             else:
                 await message.reply("You have chat, cannot create new!")
                 
-            await dat.connect.close()
         except aiosqlite.Error as e:
             log(f'error  - {e}')
         
@@ -87,7 +86,6 @@ async def create_handler(message: types.Message):
 @dp.message()
 async def gemini_handler(message: types.Message):
         user_id = message.from_user.id
-        await dat.db()
         
         try:
             search = await dat.require_message_data(user_id)
@@ -112,7 +110,6 @@ async def gemini_handler(message: types.Message):
             else:
                 await message.reply(response)
                 
-            await dat.connect.close()
         except aiosqlite.Error as e:
             log(f'error - {e}')
 
